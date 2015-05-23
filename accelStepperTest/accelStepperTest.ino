@@ -6,15 +6,22 @@
 
 #include <Adafruit_MotorShield.h>
 
-// Time variables
-long duration = 20000; // 10 seconds in milliseconds
+// THINGS YOU CAN CHANGE!
+// * CHANGE THIS TO SET IT TO TWO HOURS FOR PRODUCTION *
+// long duration = 7200000; // 2 hours in milliseconds
+long duration = 10000; // 10 seconds in milliseconds (comment this out for production)
+int numberofSteps = 1800; // Number of steps initially taken (3200 steps per rotation)
+int maxspeed = 40; // Number of steps per second
+int encoderSteps = 8; // Raise or lower this to make each encoder step move the motor more or less (granularity setting)
+
+
+
+
+// PROBABLY DON'T CHANGE ANYTHING BELOW THIS!
+int acceleration = 1000; // Steps per second per second, up to max speed
 long millistart; // Grabs milliseconds since power on once motor has initially stepped.
 bool run = false; // Has the cycle ended?
-
-// Step variables
-int numberofSteps = 100; // Number of steps initially taken
 long oldPosition = 0; // Encoder reference point
-
 // Create motor, encoder objects
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Encoder enc(2, 5);
@@ -36,13 +43,15 @@ void backwardStep()
 
 
 void setup() {
+
+  
   // put your setup code here, to run once:
   AFMS.begin();
 
-  stepper.setMaxSpeed(100);
-  stepper.setAcceleration(500);
+  stepper.setMaxSpeed(maxspeed);
+  stepper.setAcceleration(acceleration);
   //stepper.setCurrentPosition(0);
-  stepper.runToNewPosition(1200);
+  stepper.runToNewPosition(numberofSteps);
   
   millistart = millis();
 }
@@ -50,8 +59,8 @@ void setup() {
 void loop() {
  if (run == false){
   // put your main code here, to run repeatedly:
-  stepper.setMaxSpeed(100);
-  stepper.setAcceleration(500);
+  stepper.setMaxSpeed(maxspeed);
+  stepper.setAcceleration(acceleration);
   long newPosition = enc.read();
 
 
@@ -60,12 +69,12 @@ void loop() {
   {
     if (newPosition > oldPosition)
     {
-      stepper.moveTo(stepper.currentPosition() + 40*(newPosition - oldPosition));
+      stepper.moveTo(stepper.currentPosition() + encoderSteps*(newPosition - oldPosition));
       
     }
     else
     {
-      stepper.moveTo(stepper.currentPosition() - 40*(oldPosition - newPosition));
+      stepper.moveTo(stepper.currentPosition() - encoderSteps*(oldPosition - newPosition));
     }
   }
 
@@ -78,8 +87,8 @@ void loop() {
     if (run == false)
     {
 
-      stepper.setMaxSpeed(100);
-      stepper.setAcceleration(500);
+      stepper.setMaxSpeed(maxspeed);
+      stepper.setAcceleration(acceleration);
 stepper.runToNewPosition(0);
       run = true;
       myMotor->release();
